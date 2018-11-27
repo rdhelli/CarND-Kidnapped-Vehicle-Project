@@ -20,57 +20,69 @@
 using namespace std;
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
-	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
-	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
-	// Add random Gaussian noise to each particle.
-	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
-	default_random_engine gen;
+	// Set the number of particles
 	num_particles = 1000;
+	particles.resize(num_particles);
+	weights.resize(num_particles);
 
-	// Create a normal (Gaussian) distribution for x, y and theta
+	// Create normal distributions based on GPS estimates and random Gaussian noise
+	default_random_engine gen;
 	normal_distribution<double> dist_x(x, std[0]);
 	normal_distribution<double> dist_y(y, std[1]);
 	normal_distribution<double> dist_theta(theta, std[2]);
 
 	for (int i = 0; i < num_particles; ++i) {
-		double sample_x, sample_y, sample_theta;
-		sample_x = 
-		sample_y = dist_y(gen);
-		sample_theta = dist_theta(gen);	 
-		
+		// Initialize all particles to first position
+		particles[i].id = i;		
 		particles[i].x = dist_x(gen);
 		particles[i].y = dist_y(gen);
 		particles[i].theta = dist_theta(gen);
+		// Initialize all weights to 1
+		particles[i].weight = 1.0;
 	}
-	
 	is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
-	// TODO: Add measurements to each particle and add random Gaussian noise.
-	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
-	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
-	//  http://www.cplusplus.com/reference/random/default_random_engine/
+	default_random_engine gen;
+	normal_distribution<double> dist_x(x, std[0]);
+	normal_distribution<double> dist_y(y, std[1]);
+	normal_distribution<double> dist_theta(theta, std[2]);
 	
-	if ((abs(theta) > 0.001)) {
-		x_k = x_k + velocity / yaw_rate * (sin(theta + yaw_rate * delta_t) - sin(theta));
-		y_k = y_k + velocity / yaw_rate * (-cos(theta + yaw_rate * delta_t) + cos(theta));
-		theta_k = yaw_rate * delta_t;
-	}
-
-	else {
-		x_k = x_k + velocity * delta_t * cos(theta);
-		y_k = y_k + velocity * delta_t * sin(theta);
+	for (int i = 0; i < num_particles; ++i) {
+		// Add measurements to each particle
+		if ((abs(yaw_rate) > 0.0001)) {
+			particles[i].x += velocity / yaw_rate * (sin(particles[i].theta + yaw_rate * delta_t) - sin(particles[i].theta));
+			particles[i].y += velocity / yaw_rate * (cos(particles[i].theta) - cos(particles[i].theta + yaw_rate * delta_t));
+			particles[i].theta += yaw_rate * delta_t;
+		} else {
+			particles[i].x += velocity * delta_t * cos(particles[i].theta);
+			particles[i].y += velocity * delta_t * sin(particles[i].theta);
+		}
+		// Add random Gaussian noise
+		particles[i].x += dist_x(gen);
+		particles[i].y += dist_y(gen);
+		particles[i].theta += dist_theta(gen);
+		
 	}
 
 }
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
-	// TODO: Find the predicted measurement that is closest to each observed measurement and assign the 
+	// Find the predicted measurement that is closest to each observed measurement and assign the 
 	//   observed measurement to this particular landmark.
-	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
-	//   implement this method and use it as a helper during the updateWeights phase.
-
+	for (int i = 0; i < observations.size(); ++i) { // for every observed landmark
+		double nearestNeighbourDist = 1000;
+		int nearestNeighbourId = 0;
+		for (int j = 0; j < predicted.size(); ++j) { // find closest predicted landmark 
+			double dist = sqrt(pow((observations[i].x - prediction[j].x),2) + pow((observations[i].y - prediction[j].y),2));
+			if (dist < nearestNeighbourDist) {
+				nearestNeighbourDist = dist;
+				nearestNeighbourId = predicted[j].id;
+			}
+		}
+		observations[i].id = nearestNeighbourId
+	}
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
