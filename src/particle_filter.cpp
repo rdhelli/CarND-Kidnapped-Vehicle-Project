@@ -97,6 +97,47 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   and the following is a good resource for the actual equation to implement (look at equation 
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
+	
+	for (int i; i < num_particles; ++i) {
+		// Extract info of particle
+		int p_id = particles[i].id;
+		double p_x = particles[i].x;
+		double p_y = particles[i].y;
+		double p_theta = particles[i].theta;
+
+		// Select observations in range
+		vector<LandmarkObs> lmInRange;
+		for (int j; j < map_landmarks.landmark_list.size(); ++j) {
+			double lm_x = map_landmarks.landmark_list[j].x_f;
+			double lm_y = map_landmarks.landmark_list[j].y_f;
+			if (dist(p_x, p_y, lm_x, lm_y) <= sensor_range)
+				lmInRange.push_back(map_landmarks.landmark_list[j]);
+		}
+		// Transform observations from Vehicle coordinates to Map coordinates
+		vector<LandmarkObs> obsOnMap;
+		for (int k; k < observations.size; ++k) {
+			int obs_id = observations[k].id;
+			double obs_xv = observations[k].x;
+			double obs_yv = observations[k].y;
+			double obs_xm = obs_xv * cos(p_theta) - obs_yv * sin(p_theta) + p_x;
+			double obs_ym = obs_xv * sin(p_theta) + obs_yv * cos(p_theta) + p_y;
+			obsOnMap.push_back(LandmarkObs{obs_id, obs_xm, obs_ym});
+		}
+		
+		// Associate landmarks with nearest observations
+		dataAssociation(lmInRange, obsOnMap);
+		
+		// Resetting weight. Calculate weights.
+		
+		// Transform observations from MCS into VCS
+		
+		
+		// Calculate Multivariate Gaussian distribution
+		// For one particle, the product sequence of each measurement of landmark_i: exp(-0.5*(x_i - mu_i)^T * Summa^-1 * (x_i - mu_i)) / sqrt(abs(2*PI*Summa))
+		
+		// Summa << sigma_x^2, 0, 0, sigma_y^2;
+		
+	}
 }
 
 void ParticleFilter::resample() {
