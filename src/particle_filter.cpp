@@ -45,9 +45,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
 	default_random_engine gen;
-	normal_distribution<double> dist_x(x, std[0]);
-	normal_distribution<double> dist_y(y, std[1]);
-	normal_distribution<double> dist_theta(theta, std[2]);
+	normal_distribution<double> dist_x(0, std_pos[0]);
+	normal_distribution<double> dist_y(0, std_pos[1]);
+	normal_distribution<double> dist_theta(0, std_pos[2]);
 	
 	for (int i = 0; i < num_particles; ++i) {
 		// Add measurements to each particle
@@ -72,9 +72,10 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 	for (unsigned int i = 0; i < observations.size(); ++i) { // for every observed landmark
 		double nearestNeighbourDist = 1000;
 		int nearestNeighbourId = 0;
-		for (int j = 0; j < predicted.size(); ++j) { // find closest predicted landmark 
-			if (dist(observations[i].x, observations[i].y, prediction[j].x, prediction[j].y) < nearestNeighbourDist) {
-				nearestNeighbourDist = dist;
+		for (int j = 0; j < predicted.size(); ++j) { // find closest predicted landmark
+			double distance = dist(observations[i].x, observations[i].y, predicted[j].x, predicted[j].y);
+			if (distance < nearestNeighbourDist) {
+				nearestNeighbourDist = distance;
 				nearestNeighbourId = predicted[j].id;
 			}
 		}
@@ -87,7 +88,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	// Update the weights of each particle using a mult-variate Gaussian distribution
 	for (int i; i < num_particles; ++i) {
 		// Extract info of particle
-		int p_id = particles[i].id;
 		double p_x = particles[i].x;
 		double p_y = particles[i].y;
 		double p_theta = particles[i].theta;
@@ -103,7 +103,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		}
 		// Transform observations from Vehicle coordinates to Map coordinates
 		vector<LandmarkObs> obsOnMap;
-		for (unsigned int k; k < observations.size; ++k) {
+		for (unsigned int k; k < observations.size(); ++k) {
 			int obs_id = observations[k].id;
 			double obs_xv = observations[k].x;
 			double obs_yv = observations[k].y;
@@ -117,7 +117,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		
 		// Resetting & calculating weights
 		particles[i].weight = 1.0;
-		for (unsigned int k; k < observations.size; ++k) { //for each observation
+		for (unsigned int k; k < observations.size(); ++k) { //for each observation
 			double lm_x, lm_y;
 			double obs_x = obsOnMap[k].x;
 			double obs_y = obsOnMap[k].y;
@@ -129,7 +129,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				}
 			}
 			// weight is the product sequence based on Bivariate Gaussian distribution
-			double w = exp(-0.5*(pow((obs_x-lm_x)/std_landmark[0],2) + pow((obs_y-lm_y)/std_landmark[1]),2)) /
+			double w = exp(-0.5*(pow((obs_x-lm_x)/std_landmark[0],2) + pow((obs_y-lm_y)/std_landmark[1],2))) /
 				sqrt(2*M_PI*std_landmark[0]*std_landmark[1]);
 			particles[i].weight *= w;
 		}
