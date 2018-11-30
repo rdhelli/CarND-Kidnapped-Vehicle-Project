@@ -144,7 +144,7 @@ void ParticleFilter::resample() {
 	for (int i = 0; i < num_particles; ++i) w.push_back(particles[i].weight);
 	discrete_distribution<int> distribution(w.begin(), w.end());
 	vector<Particle> resampled;
-	for (int i; i < num_particles; ++i) {
+	for (int i = 0; i < num_particles; ++i) {
 		int index = distribution(generator);
 		resampled.push_back(particles[index]);
 	}
