@@ -117,12 +117,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		
 		// Resetting & calculating weights
 		particles[i].weight = 1.0;
-		for (unsigned int k = 0; k < observations.size(); ++k) { //for each observation
+		for (unsigned int k = 0; k < obsOnMap.size(); ++k) { //for each observation
 			double lm_x, lm_y;
 			double obs_x = obsOnMap[k].x;
 			double obs_y = obsOnMap[k].y;
-			for (unsigned int j; j < lmInRange.size(); ++j) { //finding associated landmark
-				if (lmInRange[j].id == observations[k].id) {
+			for (unsigned int j = 0; j < lmInRange.size(); ++j) { //finding associated landmark
+				if (lmInRange[j].id == obsOnMap[k].id) {
 					lm_x = lmInRange[j].x;
 					lm_y = lmInRange[j].y;
 					break;
@@ -130,7 +130,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			}
 			// weight is the product sequence based on Bivariate Gaussian distribution
 			double w = exp(-0.5*(pow((obs_x-lm_x)/std_landmark[0],2) + pow((obs_y-lm_y)/std_landmark[1],2))) /
-				sqrt(2*M_PI*std_landmark[0]*std_landmark[1]);
+				(2*M_PI*std_landmark[0]*std_landmark[1]);
 			particles[i].weight *= w;
 		}
 		weights[i] = particles[i].weight;
