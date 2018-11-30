@@ -86,7 +86,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
 		const std::vector<LandmarkObs> &observations, const Map &map_landmarks) {
 	// Update the weights of each particle using a mult-variate Gaussian distribution
-	for (int i; i < num_particles; ++i) {
+	for (int i = 0; i < num_particles; ++i) {
 		// Extract info of particle
 		double p_x = particles[i].x;
 		double p_y = particles[i].y;
@@ -94,7 +94,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 		// Collect observations in range
 		vector<LandmarkObs> lmInRange;
-		for (unsigned int j; j < map_landmarks.landmark_list.size(); ++j) {
+		for (unsigned int j = 0; j < map_landmarks.landmark_list.size(); ++j) {
 			double lm_x = map_landmarks.landmark_list[j].x_f;
 			double lm_y = map_landmarks.landmark_list[j].y_f;
 			int lm_id = map_landmarks.landmark_list[j].id_i;
@@ -103,7 +103,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		}
 		// Transform observations from Vehicle coordinates to Map coordinates
 		vector<LandmarkObs> obsOnMap;
-		for (unsigned int k; k < observations.size(); ++k) {
+		for (unsigned int k = 0; k < observations.size(); ++k) {
 			int obs_id = observations[k].id;
 			double obs_xv = observations[k].x;
 			double obs_yv = observations[k].y;
@@ -117,7 +117,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		
 		// Resetting & calculating weights
 		particles[i].weight = 1.0;
-		for (unsigned int k; k < observations.size(); ++k) { //for each observation
+		for (unsigned int k = 0; k < observations.size(); ++k) { //for each observation
 			double lm_x, lm_y;
 			double obs_x = obsOnMap[k].x;
 			double obs_y = obsOnMap[k].y;
