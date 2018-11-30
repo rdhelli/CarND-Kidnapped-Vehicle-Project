@@ -21,10 +21,10 @@ using namespace std;
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Set the number of particles
+	if (is_initialized) return;
 	num_particles = 100;
 	particles.resize(num_particles);
-	weights.resize(num_particles);
-
+	
 	// Create normal distributions based on GPS estimates and random Gaussian noise
 	default_random_engine gen;
 	normal_distribution<double> dist_x(x, std[0]);
@@ -133,7 +133,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				(2*M_PI*std_landmark[0]*std_landmark[1]);
 			particles[i].weight *= w;
 		}
-		weights[i] = particles[i].weight;
 	}
 	cout << "weights updated" << endl;
 }
@@ -141,7 +140,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 void ParticleFilter::resample() {
 	// Resample particles with replacement with probability proportional to their weight. 
 	default_random_engine generator;
-	discrete_distribution<int> distribution(weights.begin(), weights.end());
+	vector<double> w;
+	for (int i = 0; i < num_particles; ++i) w.push_back(particles[i].weight);
+	discrete_distribution<int> distribution(w.begin(), w.end());
 	vector<Particle> resampled;
 	for (int i; i < num_particles; ++i) {
 		int index = distribution(generator);
