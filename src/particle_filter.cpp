@@ -135,6 +135,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		}
 		weights[i] = particles[i].weight;
 	}
+	cout << "weights updated" << endl;
 }
 
 void ParticleFilter::resample() {
